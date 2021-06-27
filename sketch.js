@@ -11,6 +11,7 @@ fileSelector.addEventListener('change', (event) => {
     document.getElementById("file_stuff").style.visibility = "hidden";
     });
 
+
 function readFile(file){
     var reader = new FileReader();
     reader.readAsText(file, "UTF-8");
@@ -41,7 +42,16 @@ var start_time; // <-- start time of simulation
 var end_time; // <-- end time of simulation
 
 function setup(){
-    createCanvas(750, 750);
+    let cnv = createCanvas(750, 750);
+    cnv.id('mycanvas')
+
+    // styling
+    /*
+    canvas and send packet button should be together (vertically)
+    packet info and timing section should be to right side
+    */
+
+
 
     n = new Network();
 
@@ -84,25 +94,42 @@ class Network{
     constructor(){
         this.routers = []; // <-- can be any data structure
         this.hosts = [];
-        this.connectionsPerRouter = 3;
+        this.connectionsPerRouter = 3; // <-- how many connections each router can 
     }
 
     generateConnections(){
         //take each router and generate x connections (routing table)
             //if a routers has >= x connects in routing table, try again until all routers have at least 1 connection
         //could do this more randomly
+        // for(let i = 0; i < this.routers.length; i++){
+        //     let cur = this.routers[i];
+        //     for(let j = 0; j < this.routers.length; j++){
+        //         let cur_con = this.routers[j];
+        //         if(cur.routing_table.length < this.connectionsPerRouter){ // <-- if not the same router and router has less than this.connectionsPerRouter
+        //             cur.routing_table.push({
+        //                 "router": cur_con,
+        //                 "cost": Math.floor(dist(cur.x_pos, cur.y_pos, cur_con.x_pos, cur_con.y_pos)) // <-- cost is simply distance to router
+        //             });
+        //         }
+        //     }
+        // }
         for(let i = 0; i < this.routers.length; i++){
             let cur = this.routers[i];
-            for(let j = 0; j < this.routers.length; j++){
-                let cur_con = this.routers[j];
-                if(cur.routing_table.length < this.connectionsPerRouter){ // <-- if not the same router and router has less than this.connectionsPerRouter
+            for(let j = 0; j < this.connectionsPerRouter; j++){
+                let cur_con = this.routers[Math.floor(Math.random() * this.routers.length)];
+                if(cur.activeConnections < this.connectionsPerRouter && cur_con.activeConnections < this.connectionsPerRouter){
                     cur.routing_table.push({
                         "router": cur_con,
                         "cost": Math.floor(dist(cur.x_pos, cur.y_pos, cur_con.x_pos, cur_con.y_pos)) // <-- cost is simply distance to router
                     });
+                    cur.activeConnections++;
+                    cur_con.activeConnections++;
                 }
+                
             }
         }
+
+
     }
 
     sendPackets(){
@@ -138,6 +165,7 @@ class Router{
         if(this.ip === ""){
             this.generateIP();
         }
+        this.activeConnections = 0; // <-- # of active connections
     }
     
     display(){

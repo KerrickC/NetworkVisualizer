@@ -4,5 +4,11 @@
         "source_ip": "100.0.0.1",
         "dest_ip": "272.0.0.1",
         "content": "hello!"
+    },
+    {
+        "_id": 2,
+        "source_ip": "100.0.0.1",
+        "dest_ip": "272.0.0.1",
+        "content": "whats up?"
     }
 ]
