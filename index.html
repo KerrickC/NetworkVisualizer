@@ -5,18 +5,34 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>
+    <link rel="stylesheet" href="style.css">
     <title>Network Visualizer</title>
 </head>
 <body>
     <div class="fileselector" id="file_stuff">
-        <p>Please selected a '.net' file.</p>
-        <input type="file" id="file-selector" accept=".json">
+        <div id="file_selection_area" class="file_selection_area">
+            <p>Please selected a '.json' packet file.</p>
+            <input type="file" id="file-selector" accept=".json">
+            <p>or</p>
+            <button id="demo_button">Test with demo</button>
+        </div>
+
+        <p id="node_selection_text" style="visibility: hidden; color: green;">Please selected a source node (blue), then a destination node (red).</p>
     </div>
 
-    <div class="packettext">
+    <!-- <div class="nodeselector" id="node_selector">
+        <div class="origin_selector">
+
+        </div>
+        <div class="destination_selector">
+
+        </div>
+    </div> -->
+
+    <!-- <div class="packettext">
         <h1>Packet Content ---------- Time (ms)</h1>
         <p>Example 1 ---------- 14ms</p>
-    </div>
+    </div> -->
 
     
     <script src="./sketch.js"></script>

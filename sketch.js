@@ -2,14 +2,69 @@
 var http_requests = {}; // <-- access all http requests here (from json file)
 var ready = false; // <-- boolean value representing if file content is ready
 var packet_button_pressed = false;
+var demo_selected = false;
+
+const selector_text = document.getElementById("node_selection_text");
+
 //get the file from the file selector
 const fileSelector = document.getElementById('file-selector');
 fileSelector.addEventListener('change', (event) => {
     const file = event.target.files[0];
     readFile(file);
     //console.log(file);
-    document.getElementById("file_stuff").style.visibility = "hidden";
-    });
+    document.getElementById("file_selection_area").style.display = "none";
+    selector_text.style.visibility = "visible";
+
+});
+
+const demo_file = `
+[
+    {
+        "_id": 1,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "H"
+    },
+    {
+        "_id": 2,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "e"
+    },
+    {
+        "_id": 3,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "_id": 4,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "_id": 5,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "o"
+    },
+    {
+        "_id": 6,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "!"
+    }
+]
+`     
+
+const demoButton = document.getElementById('demo_button');
+    demoButton.addEventListener('click', (event) => {
+        http_requests = JSON.parse(demo_file);
+        ready = true;
+        document.getElementById("file_selection_area").style.display = "none";
+        selector_text.style.visibility = "visible";
+    })
 
 
 function readFile(file){
@@ -20,10 +75,9 @@ function readFile(file){
         //console.log(event.target.result)
         http_requests = JSON.parse(event.target.result);
         ready = true;
-
-        
     }
 }
+
 
 
 let routerImage;
@@ -41,9 +95,58 @@ var dest; // <-- destination router/host
 var start_time; // <-- start time of simulation
 var end_time; // <-- end time of simulation
 
+var source_chosen = false; // <-- bool for source chosen
+var dest_chosen = false; // <-- bool for dest chosen
+
+var source_ip; // <-- stores chosen source IP
+var dest_ip; // <-- stores chosen destination IP
+
+//when pressing on a node, sets to either source or destination
+function mouseClicked() {
+    if(!source_chosen){
+        for(let i = 0; i < n.routers.length; i ++){
+            if(dist(mouseX, mouseY, n.routers[i].x_pos, n.routers[i].y_pos) < 5){
+                console.log("Source node: " + n.routers[i].ip);
+                n.routers[i].isSource = true;
+                source_chosen = true;
+                source_ip = n.routers[i].ip;
+                setSourceNode(n.routers[i].ip);
+            }
+        }
+    }else if(!dest_chosen){
+        for(let i = 0; i < n.routers.length; i ++){
+            if(dist(mouseX, mouseY, n.routers[i].x_pos, n.routers[i].y_pos) < 5){
+                console.log("Destination node: " + n.routers[i].ip);
+                n.routers[i].isDest = true;
+                dest_chosen = true;
+                dest_ip = n.routers[i].ip;
+                setDestNode(n.routers[i].ip);
+            }
+        }
+    }
+    
+  }
+
+//set source node ip
+function setSourceNode(ip){
+    for(let i = 0; i < http_requests.length; i++) {
+        http_requests[i].source_ip = ip;
+    }
+    //console.log(http_requests);
+}
+
+//set destination node ip
+function setDestNode(ip){
+    for(let i = 0; i < http_requests.length; i++) {
+        http_requests[i].dest_ip = ip;
+    }
+    //console.log(http_requests);
+}
+
+
 function setup(){
-    let cnv = createCanvas(750, 750);
-    cnv.id('mycanvas')
+    let cnv = createCanvas(500, 500);
+    cnv.id('mycanvas');
 
     // styling
     /*
@@ -56,8 +159,7 @@ function setup(){
     n = new Network();
 
     //select number of routers and number of neighbors of each router
-    let numRouters = 100;
-    n.routers.push(new Router("272.0.0.1")); // <-- currently acting as destination router
+    let numRouters = 50;
     for(let i = 0; i < numRouters; i ++){
         n.routers.push(new Router(""));
     }
@@ -66,7 +168,11 @@ function setup(){
 
     button = createButton('Send Packets')
     button.mouseClicked( ()=> {
-        packet_button_pressed = true;
+        if(source_chosen && dest_chosen){
+            packet_button_pressed = true;
+        }else{
+            alert("Please select a source and destination node by pressing on a black dot (router/node) with an IP address.")
+        }
     })
 }
 
@@ -74,7 +180,7 @@ function draw(){
     background(255,255,255);
     if(packet_button_pressed){
 
-        n.sendPackets();
+        n.sendPackets(source_ip);
         packet_button_pressed = false;
         var d = new Date();
         start_time = d.getTime();
@@ -92,7 +198,7 @@ function draw(){
 
 class Network{
     constructor(){
-        this.routers = []; // <-- can be any data structure
+        this.routers = []; // <-- GRAPH
         this.hosts = [];
         this.connectionsPerRouter = 3; // <-- how many connections each router can 
     }
@@ -132,20 +238,25 @@ class Network{
 
     }
 
-    sendPackets(){
+    sendPackets(source_ip){
         /*
         take http requests from file, create n packets
         give packets to hosts/end routers  
         */
        console.log("sending packets...");
-       
+       //console.log(http_requests);
         for(let i = 0; i < http_requests.length; i++) {
             let packet_info = http_requests[i];
             let p = new Packet(packet_info);
             //console.log(p);
-            console.log(this.routers);
-            //this.routers[0].data.push(p); // <-- send to first router
-            this.routers[Math.floor(Math.random() * this.routers.length)].data.push(p); // <-- sends packet to random router for now (beta testing), because have no algoritm for sending packets, so will always loop
+            //console.log(this.routers);
+
+            //push packet to source node
+            for(let j = 0; j < this.routers.length; j++){
+                if(this.routers[j].ip = source_ip){
+                    this.routers[j].data.push(p);
+                }
+            }
         }
 
     }
@@ -156,9 +267,7 @@ class Network{
 class Router{
     constructor(ip){
         this.ip = ip; // <-- in the form "kkk.xxx.yyy.zzz"
-        this.routing_table = [
-
-        ]; // <-- currently an array, can be any data structure
+        this.routing_table = []; // <-- currently an array, can be any data structure
         this.x_pos = Math.floor(Math.random() * width);
         this.y_pos =  Math.floor(Math.random() * height);
         this.data = []; //new CustomDataStructure(); // <-- packet objects stored here, can be any data structure
@@ -166,10 +275,20 @@ class Router{
             this.generateIP();
         }
         this.activeConnections = 0; // <-- # of active connections
+
+        //bools for dest/source states
+        this.isDest = false;
+        this.isSource = false;
     }
     
     display(){
-        if(this.data.length > 0){
+        if(this.isSource){
+            fill(0,0,255);
+            stroke(0,0,255);
+        }else if(this.isDest){
+            fill(255,0,0);
+            stroke(255,0,0);
+        }else if(this.data.length > 0){
             fill(0,255,0);
             stroke(0,255,0);
         }else{
@@ -236,7 +355,7 @@ class Router{
         }
 
         
-        //console.log(next_hop);
+        console.log(next_hop);
         return next_hop;
     }
 
@@ -248,17 +367,24 @@ class Router{
         }else if(packet.header.dest_ip === this.ip){ // <-- if packet has reached destination!!!!
             var d = new Date();
             end_time = d.getTime();
-            alert(`Message recieved: ${packet.body.content} ----- Time elapsed: ${end_time - start_time}ms`);
+            //alert(`Message recieved: ${packet.body.content} | Time elapsed: ${end_time - start_time}ms`);
+            console.log('PACKET ARRIVED!')
             this.data.splice(0,1);
         }
 
         if(this.data.length > 0){  // <-- check if router has data to send
             console.log('forwarding packet...')
             let dest = this.findNextHop(packet);
-            dest.data.push(packet);
-            this.data.splice(0,1);
-            packet.prev_ip = this.ip;
-            packet.lifespan = packet.lifespan - 1;
+            if(dest === undefined){
+                this.data.splice(0,1);
+                //no path, need to recalculate
+            }else{
+                console.log(dest);
+                dest.data.push(packet);
+                this.data.splice(0,1);
+                packet.prev_ip = this.ip;
+                packet.lifespan = packet.lifespan - 1; 
+            }
         }
        
        //once custom data structure is implemented, would need custom method to add to structure
@@ -267,11 +393,6 @@ class Router{
 
 }
 
-class Host{ // <-- origin and destination
-    constructor(){
-
-    }
-}
 
 class Packet{
     constructor(json){
@@ -291,6 +412,8 @@ class Packet{
         this.body.content = json.content;
     }
 }
+
+
 
 
 
