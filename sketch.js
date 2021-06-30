@@ -83,10 +83,10 @@ function readFile(file){
 let routerImage;
 let hostImage;
 
-function preload() {
-    routerImage = loadImage('./assets/router.png');
-    hostImage = loadImage('./assets/host.png')
-}
+// function preload() {
+//     routerImage = loadImage('./assets/router.png');
+//     hostImage = loadImage('./assets/host.png')
+// }
 
 var n;
 var source; // <-- source router/host
@@ -103,7 +103,7 @@ var dest_ip; // <-- stores chosen destination IP
 
 //when pressing on a node, sets to either source or destination
 function mouseClicked() {
-    if(!source_chosen){
+    if(!source_chosen && n){
         for(let i = 0; i < n.routers.length; i ++){
             if(dist(mouseX, mouseY, n.routers[i].x_pos, n.routers[i].y_pos) < 5){
                 console.log("Source node: " + n.routers[i].ip);
@@ -113,7 +113,7 @@ function mouseClicked() {
                 setSourceNode(n.routers[i].ip);
             }
         }
-    }else if(!dest_chosen){
+    }else if(!dest_chosen && n){
         for(let i = 0; i < n.routers.length; i ++){
             if(dist(mouseX, mouseY, n.routers[i].x_pos, n.routers[i].y_pos) < 5){
                 console.log("Destination node: " + n.routers[i].ip);
