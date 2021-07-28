@@ -183,7 +183,7 @@ function setup(){
     n = new Network();
 
     //select number of routers and number of neighbors of each router
-    let numRouters = 3;
+    let numRouters = 20;
     for(let i = 0; i < numRouters; i ++){
         n.routers.push(new Router(""));
     }
@@ -205,7 +205,8 @@ function setup(){
 function draw(){
     background(255,255,255);
     if(packet_button_pressed){
-        n.sendPackets(source_ip); // <-- send packets through network
+        //n.sendPackets(source_ip); // <-- send packets through network
+        n.sendPackets(n.dijkPath, n.map); // <-- begin routings
         packet_button_pressed = false;
         var d = new Date();
         start_time = d.getTime();
@@ -387,9 +388,8 @@ class Network{
         // console.log(m);
         console.log(correctPath);
 
-
-        this.sendPackets(correctPath, m); // <-- begin routings
-
+        this.dijkPath = correctPath;
+        this.map = m;
         //this.printNetwork();
     }
 
@@ -403,11 +403,11 @@ class Network{
         for(let i = 0; i < http_requests.length; i++) {
             let packet_info = http_requests[i];
             let p = new Packet(packet_info);
-
             //push packet to source node
             for(let j = 0; j < this.routers.length; j++){
-                if(this.routers[j].ip = source_ip){
+                if(this.routers[j].ip == source_ip){
                     this.routers[j].data.push(p);
+                    //path.shift();
                     this.routers[j].dijkstraPath = path;
                     this.routers[j].dataMap = map;
                     break;
@@ -541,13 +541,15 @@ class Router{
             }
         }
 
-        console.log(ip_find);
+        console.log("next router: " + ip_find);
 
         //search through routing table to find corresponding router
         console.log('current info: ' + this.ip)
         console.log(this.routing_table);
         for(let i = 0; i < this.routing_table.length; i ++){
-            if(this.routing_table[i].router.ip === ip_find){
+            //console.log(this.routing_table[i].router.ip);
+            if(this.routing_table[i].router.ip == ip_find){
+                //console.log('searching routing table for next hop location...');
                 found_router = this.routing_table[i].router;
                 found_router.hadData = true;
                 return found_router;
@@ -557,20 +559,64 @@ class Router{
 
     findNextHop(){ 
         /*
-        sends packet to next router in this.dijkstraPath
+            sends packet to next router in this.dijkstraPath
         */
-        //this.printDijk();
-        let next_hop;
-        let newDijk = this.dijkstraPath.splice(1, this.dijkstraPath.length-1); // <-- remove this step from the path
-        //console.log(newDijk);
-        next_hop = this.findNodeFromInd(newDijk[0], this.dataMap); // <-- get next hop router from dijk info
-        console.log(next_hop);
-        next_hop.dijkstraPath = newDijk;
-        next_hop.dataMap = this.dataMap;
 
-        //console.log(next_hop.routing_table);
+        this.printDijk();
+        //console.log(this.dataMap);
 
-        return next_hop; //return next hop router (router Object)
+        //METHOD 1
+        // let next_hop;
+        // let newDijk = this.dijkstraPath;
+        // newDijk.splice(1, this.dijkstraPath.length-1); // <-- remove this step from the path
+        // console.log(newDijk);
+        // next_hop = this.findNodeFromInd(newDijk[0], this.dataMap); // <-- get next hop router from dijk info
+        // console.log(next_hop);
+        // next_hop.dijkstraPath = newDijk;
+        // next_hop.dataMap = this.dataMap;
+
+        //METHOD 2
+        // for(let i = 0; i < this.dijkstraPath.length; i ++){
+        //     let cur = this.findNodeFromInd(this.dijkstraPath[i], this.dataMap);
+        //     console.log(cur.ip);
+        //     connsole.log(this.ip);
+        //     if(cur.ip === this.ip){ // <-- successfully match found in routing algorithm
+        //         console.log('match found, preparing for forwarding...')
+        //         let next_hop;
+        //         next_hop = this.findNodeFromInd(this.dijkstraPath[i+1], this.dataMap); // <-- get next hop router from dijk info
+        //         console.log(next_hop);
+        //         next_hop.dijkstraPath = this.dijkstraPath;
+        //         next_hop.dataMap = this.dataMap;
+        //         return next_hop; //return next hop router (router Object)
+                
+        //     }
+            
+        // }
+        
+
+        var val = this.dijkstraPath.find((cur) => { // <-- finds the current value we are at in algorithm
+            return (cur === this.dataMap[this.ip]);
+        })
+
+        console.log(val);
+
+        if(val !== undefined){
+            let next_ind = this.dijkstraPath[this.dijkstraPath.indexOf(val) + 1]; // <-- finds index of next hop in path
+
+            console.log("next found: " + next_ind);
+
+            let next_hop = this.findNodeFromInd(next_ind, this.dataMap); // <-- gets node corresponding to the next hop in path
+
+            next_hop.dijkstraPath = this.dijkstraPath;
+            next_hop.dataMap = this.dataMap;
+
+            console.log(next_hop);
+
+            return next_hop; // <-- returns next hop as router object
+        
+        }
+
+        
     }
 
 
