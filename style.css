@@ -1,7 +1,9 @@
-.origin_selector{
-
+.body{
+    display: flex;
+    flex-direction: row;
 }
 
-destination_selector{
-    
+.search_types{
+    display: flex;
+    flex-direction: row;
 }

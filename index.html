@@ -20,6 +20,22 @@
         <p id="node_selection_text" style="visibility: hidden; color: green;">Please selected a source node (blue), then a destination node (red).</p>
     </div>
 
+    <div class="search" id="search" style="visibility: hidden;">
+        <div class="bfs">
+            <input type="number" id="packet_id" placeholder="Please enter a number within range">
+            <div class="search_types">
+                <div class="bfs_group">
+                    <button id="bfs_button">BFS</button>
+                    <p id="bfs_label"></p>
+                </div>
+                <div class="dfs_group">
+                    <button id="dfs_button">DFS</button>
+                    <p id='dfs_label'></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- <div class="nodeselector" id="node_selector">
         <div class="origin_selector">
 

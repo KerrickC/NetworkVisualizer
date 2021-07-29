@@ -1,12 +1,3 @@
-/*
-CURRENT ISSUES:
-- routes seem to be appearing on screen but not actually in routing table, causing dijkstras to fail for some reason
-    - possible fix: change how routing tables are created
-    - ensure dijkstra is only checking nodes in routing tables
-*/
-
-
-
 var http_requests = {}; // <-- access all http requests here (from json file)
 var ready = false; // <-- boolean value representing if file content is ready
 var packet_button_pressed = false;
@@ -80,7 +71,7 @@ const demo_file2 = `
 
 const demoButton = document.getElementById('demo_button');
     demoButton.addEventListener('click', (event) => {
-        http_requests = JSON.parse(demo_file2);
+        http_requests = JSON.parse(demo_file);
         console.log(http_requests);
         ready = true;
         document.getElementById("file_selection_area").style.display = "none";
@@ -169,7 +160,7 @@ function setDestNode(ip){
 
 
 function setup(){
-    let cnv = createCanvas(500, 500);
+    let cnv = createCanvas(750, 750);
     cnv.id('mycanvas');
 
     // styling
@@ -183,7 +174,7 @@ function setup(){
     n = new Network();
 
     //select number of routers and number of neighbors of each router
-    let numRouters = 20;
+    let numRouters = 228;
     for(let i = 0; i < numRouters; i ++){
         n.routers.push(new Router(""));
     }
@@ -260,10 +251,7 @@ class Network{
                         
                         cur_con.activeConnections++;
                     }
-                    
-                    
                 }
-                
             }
         }
     }
@@ -406,17 +394,16 @@ class Network{
             //push packet to source node
             for(let j = 0; j < this.routers.length; j++){
                 if(this.routers[j].ip == source_ip){
-                    this.routers[j].data.push(p);
-                    //path.shift();
+                    // console.log("packet " + i + ": ");
+                    // console.log(p);
+                    this.routers[j].data.insert(p);
                     this.routers[j].dijkstraPath = path;
                     this.routers[j].dataMap = map;
                     break;
                 }
             }
         }
-
     }
-
 }
 
 class Router{
@@ -426,7 +413,7 @@ class Router{
         this.routing_table = []; // <-- currently an array, can be any data structure
         this.x_pos = Math.floor(Math.random() * width);
         this.y_pos =  Math.floor(Math.random() * height);
-        this.data = []; //new CustomDataStructure(); // <-- packet objects stored here, can be any data structure
+        this.data = new BST(); //BST data structure
         if(this.ip === ""){
             this.generateIP();
         }
@@ -475,16 +462,35 @@ class Router{
         }
         
         //if router has packets, send them to next destination
-        if(this.data.length > 0){
-            this.sendPacket(this.data[0]);
+        if(this.data.count > 0){ 
+
+            //console.log(this.ip + ": " + this.data.count);
+            //if(this.data.root !== null){
+            
+            let leaf = this.data.PreorderGetLeaf(this.data.root);
+            //console.log(leaf);
+            if(leaf !== null && leaf !== undefined && leaf.header.dest_ip !== this.ip){
+
+                this.data.remove(this.data.root, leaf.header._id);
+                this.data.count --;
+                //console.log(leaf);
+                this.sendPacket(leaf) // <-- this.data.append() gets last elememt <-- BST IMP
+            }
+               
+            //}
+            //console.log("data count: " + this.data.count)
+            //console.log(this.data.root);
+            
         }
 
+        this.checkCompleteTransmission();
+
         //setting router to busy if applicable
-        if(this.data.length > 3){
-            //this.busy = true;
-        }else{
-            this.busy = false;
-        }
+        // if(this.data.count > 3){
+        //     //this.busy = true;
+        // }else{
+        //     this.busy = false;
+        // }
     }
 
     alreadyContains(router){
@@ -541,11 +547,11 @@ class Router{
             }
         }
 
-        console.log("next router: " + ip_find);
+        //console.log("next router: " + ip_find);
 
         //search through routing table to find corresponding router
-        console.log('current info: ' + this.ip)
-        console.log(this.routing_table);
+        //console.log('current info: ' + this.ip)
+        //console.log(this.routing_table);
         for(let i = 0; i < this.routing_table.length; i ++){
             //console.log(this.routing_table[i].router.ip);
             if(this.routing_table[i].router.ip == ip_find){
@@ -561,56 +567,23 @@ class Router{
         /*
             sends packet to next router in this.dijkstraPath
         */
-
-        this.printDijk();
-        //console.log(this.dataMap);
-
-        //METHOD 1
-        // let next_hop;
-        // let newDijk = this.dijkstraPath;
-        // newDijk.splice(1, this.dijkstraPath.length-1); // <-- remove this step from the path
-        // console.log(newDijk);
-        // next_hop = this.findNodeFromInd(newDijk[0], this.dataMap); // <-- get next hop router from dijk info
-        // console.log(next_hop);
-        // next_hop.dijkstraPath = newDijk;
-        // next_hop.dataMap = this.dataMap;
-
-        //METHOD 2
-        // for(let i = 0; i < this.dijkstraPath.length; i ++){
-        //     let cur = this.findNodeFromInd(this.dijkstraPath[i], this.dataMap);
-        //     console.log(cur.ip);
-        //     connsole.log(this.ip);
-        //     if(cur.ip === this.ip){ // <-- successfully match found in routing algorithm
-        //         console.log('match found, preparing for forwarding...')
-        //         let next_hop;
-        //         next_hop = this.findNodeFromInd(this.dijkstraPath[i+1], this.dataMap); // <-- get next hop router from dijk info
-        //         console.log(next_hop);
-        //         next_hop.dijkstraPath = this.dijkstraPath;
-        //         next_hop.dataMap = this.dataMap;
-        //         return next_hop; //return next hop router (router Object)
-                
-        //     }
-            
-        // }
-        
-
         var val = this.dijkstraPath.find((cur) => { // <-- finds the current value we are at in algorithm
             return (cur === this.dataMap[this.ip]);
         })
 
-        console.log(val);
+        //console.log(val);
 
         if(val !== undefined){
             let next_ind = this.dijkstraPath[this.dijkstraPath.indexOf(val) + 1]; // <-- finds index of next hop in path
 
-            console.log("next found: " + next_ind);
+            //console.log("next found: " + next_ind);
 
             let next_hop = this.findNodeFromInd(next_ind, this.dataMap); // <-- gets node corresponding to the next hop in path
 
             next_hop.dijkstraPath = this.dijkstraPath;
             next_hop.dataMap = this.dataMap;
 
-            console.log(next_hop);
+            //console.log(next_hop);
 
             return next_hop; // <-- returns next hop as router object
         
@@ -623,33 +596,73 @@ class Router{
     sendPacket(packet){
         if(packet.lifespan === 0){ //check if packet is dead
             console.log('packet died!!!')
-            this.data.splice(0,1);
+            //this.data.splice(0,1);
+            this.data.PreorderDelete(this.data.root);  // <-- BST IMP
         }else if(packet.header.dest_ip === this.ip){ // <-- if packet has reached destination!!!!
             var d = new Date();
             end_time = d.getTime();
             //alert(`Message recieved: ${packet.body.content} | Time elapsed: ${end_time - start_time}ms`);
-            alert('PACKET ARRIVED!')
-            this.data.shift();
+            console.log('PACKET ARRIVED: ' + packet.body.content);
+            //this.data.checkCompleteTransmission();
+            //console.log(this.data.count);
+            //this.data.shift(); // remove data from node after arrival???/
+        }else{  // <-- check if router has data to send
+            console.log(`forwarding packet from ${this.ip}...`);
+            //console.log(packet);
+            packet.prev_ip = this.ip;
+            packet.lifespan = packet.lifespan - 1;
+            this.findNextHop().data.insert(packet); // <-- sending packet to next hop
         }
-
-        if(this.data.length > 0){  // <-- check if router has data to send
-            console.log('forwarding packet...');
-
-            let dest = this.findNextHop(); // <-- find next router to send packet to 
-            //console.log(dest);
-            if(dest === undefined){
-                this.data.splice(0,1);
-                //no path, need to recalculate
-            }else{
-                dest.data.push(packet); // <-- sending packet to next hop
-                this.data.shift();
-                packet.prev_ip = this.ip;
-                packet.lifespan = packet.lifespan - 1; 
-            }
-        }
-       
     }
 
+
+    checkCompleteTransmission(){
+        //check if all data has been transmitted to node
+        //console.log(this.count + "===" + http_requests.length);
+       if(this.data.count === http_requests.length-1){
+
+        const ct = this.data.count;
+        const rt = this.data.root;
+        console.log(this);
+        if(rt.header.dest_ip == this.ip){ // <-- one more check for correctness
+ 
+            document.getElementById('search').style.visibility = "visible";
+ 
+            document.getElementById('bfs_button').addEventListener('click', (event) => {
+                let val = document.getElementById('packet_id').value;
+                if(val <= ct){
+                    let start_time = window.performance.now(); 
+                    let bfs_val = this.data.BFS(this.data.root, val);
+                    let end_time = window.performance.now(); 
+                    console.log(start_time);
+                    console.log(end_time);
+                    
+                    document.getElementById('bfs_label').innerHTML = `BFS: Time Elapsed: ${end_time - start_time}ms  |  Value Found: ${bfs_val}`;
+                }else{
+                    alert('Please enter a number within range!');
+                }
+                
+            })
+ 
+            document.getElementById('dfs_button').addEventListener('click', (event) => {
+                let val = document.getElementById('packet_id').value;
+                //console.log(val);
+                if(val <= ct){
+                    let start_time = window.performance.now(); 
+                    let dfs_val = this.data.PreorderDFS(this.data.root, val);
+                    let end_time = window.performance.now();
+                    document.getElementById('bfs_label').innerHTML = `DFS: Time Elapsed: ${end_time - start_time}ms  |  Value Found: ${dfs_val}`;
+                }else{
+                    alert('Please enter a number within range!');
+                }
+ 
+            })
+        }
+        
+
+       }
+
+    }
 
 }
 
@@ -659,6 +672,8 @@ class Packet{
         this.header = {}; // <-- contains destination, origin, etc.
         this.body = {}; // <-- contains packet content (what we want to be delivered)
         this.prev_ip;
+        this.left = null; // <-- left node in BST
+        this.right = null; // <-- right node in BST
         this.lifespan = 10; // <-- should be variable w/ amount of router
         //this.json = json; // <-- create packet from this data
         this.parsePacket(json); // <-- creates packet
@@ -668,12 +683,170 @@ class Packet{
         this.header._id = json._id;
         this.header.source_ip = json.source_ip;
         this.header.dest_ip = json.dest_ip;
-        
         this.body.content = json.content;
     }
 }
 
 
 
+//BST data storage class (all routers have this data structure)
+class BST {
+    constructor(){
+        this.count = 0; // <-- num elements in BST (assuming)
+        this.root = null; // <-- packet object
+    }
+
+    checkDuplicates(root, id){
+        if (root == null)
+            return false;
+        
+        if(root.header._id == id){
+            console.log('duplicate found')
+            return true;
+        }
+            
+        
+        if (root.header._id < id)
+            return this.checkDuplicates(root.right, id);
+
+        return this.checkDuplicates(root.left, id);
+    }
 
 
+    insert(packet){
+        //console.log('packet_count: ' + this.count)
+        if(!this.checkDuplicates(this.root, packet.header._id)){
+            //this.checkCompleteTransmission();
+            if(this.root === null){
+               this.root = packet;
+               this.count ++;
+               console.log("inserted as root");
+               //console.log(this.root);
+            }else{
+               this.insertNode(this.root, packet);
+               this.count ++;
+            };
+        }
+     };
+
+     insertNode(node, packet){
+        if(packet.header._id < node.header._id){
+           if(node.left === null){
+                console.log('inserted left');
+                node.left = packet;
+           }else{
+                this.insertNode(node.left, packet);
+           }
+        } else {
+           if(node.right === null){
+                console.log('inserted right');
+                node.right = packet;
+           }else{
+                this.insertNode(node.right,packet);
+           };
+        };
+     };
+
+
+    PreorderGetLeaf(root) { //returns leaf node to pass on
+        // search for the first leaf and return it 
+        if (root == null) {
+            //console.log('root is null');
+            return;
+        } else { // traverse in preorder
+
+            if (root.left == null && root.right == null) {
+               // console.log(root);
+                // var new_dat = root;
+                // root = null;
+                return root;
+            }
+
+            if(root.left !== null){
+
+                return(this.PreorderGetLeaf(root.left));
+            }
+
+            if(root.right !== null){
+                return(this.PreorderGetLeaf(root.right));
+            }   
+
+        }
+
+    }
+
+    //need to remove prev->next, not next itself
+    remove(node, id){
+        if (node == null || node.header._id == id){
+            //console.log('successfully removed: ' + node.header._id);
+            this.root = null;
+            node = null;
+            return;
+        }else if(node.right !== null && node.right.header._id == id){
+            node.right = null;
+            return;
+        }else if(node.left !== null && node.left.header._id == id){
+            node.right = null;
+            return;
+        }
+        
+        if (node.header._id < id)
+            return this.remove(node.right, id);
+
+        return this.remove(node.left, id);
+    }
+
+
+    PreorderDFS(root, id) { // <-- (node object, int)
+        // search for the node with the specified ID and print out the body
+        
+        if (root == null) {
+            //console.log("There be nothing in the BST");
+            return "N/A";
+        }
+        else { // travers in preorder
+            console.log(root.header._id);
+            if (root.header._id == id) {
+                return (root.body.content);
+            }
+            else if (root.header._id > id) {
+                return(this.PreorderDFS(root.left, id));
+            }
+            else {
+                return(this.PreorderDFS(root.right, id));
+            }
+        }
+    }
+
+
+
+    BFS(root, s_id){
+        if (root == null) {
+          return;
+        }
+      
+        let queue = [root]
+      
+        while (queue.length > 0) {
+          let cur = queue.shift();
+          let id = cur.header._id;
+         console.log(id);
+          if(id == s_id){
+              return (cur.body.content);
+          }
+
+          if (cur.left == null && cur.right == null) {
+            continue;
+          }
+          if (cur.left != null) {
+            queue.push(cur.left);
+          }
+          if (cur.right != null) {
+            queue.push(cur.right);
+          }
+        }
+      }
+
+    
+
+}
