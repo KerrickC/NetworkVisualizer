@@ -3,6 +3,8 @@ var ready = false; // <-- boolean value representing if file content is ready
 var packet_button_pressed = false;
 var demo_selected = false;
 
+var prog_p = document.getElementById('progress_p');
+
 const selector_text = document.getElementById("node_selection_text");
 
 //get the file from the file selector
@@ -19,40 +21,184 @@ fileSelector.addEventListener('change', (event) => {
 const demo_file = `
 [
     {
-        "_id": 1,
+        "id": 1,
         "source_ip": "",
         "dest_ip": "",
         "content": "H"
     },
     {
-        "_id": 2,
+        "id": 2,
         "source_ip": "",
         "dest_ip": "",
         "content": "e"
     },
     {
-        "_id": 3,
+        "id": 3,
         "source_ip": "",
         "dest_ip": "",
         "content": "l"
     },
     {
-        "_id": 4,
+        "id": 4,
         "source_ip": "",
         "dest_ip": "",
         "content": "l"
     },
     {
-        "_id": 5,
+        "id": 5,
         "source_ip": "",
         "dest_ip": "",
         "content": "o"
     },
     {
-        "_id": 6,
+        "id": 6,
         "source_ip": "",
         "dest_ip": "",
         "content": "!"
+    },
+    {
+        "id": 7,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "H"
+    },
+    {
+        "id": 8,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "e"
+    },
+    {
+        "id": 9,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "id": 10,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "id": 11,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "o"
+    },
+    {
+        "id": 12,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "H"
+    },
+    {
+        "id": 13,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "e"
+    },
+    {
+        "id": 14,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "id": 15,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "id": 16,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "o"
+    },
+    {
+        "id": 17,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "H"
+    },
+    {
+        "id": 18,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "e"
+    },
+    {
+        "id": 19,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "id": 20,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "id": 21,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "o"
+    },
+    {
+        "id": 22,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "H"
+    },
+    {
+        "id": 23,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "e"
+    },
+    {
+        "id": 24,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "id": 25,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "id": 26,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "o"
+    },
+    {
+        "id": 27,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "H"
+    },
+    {
+        "id": 28,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "e"
+    },
+    {
+        "id": 29,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
+    },
+    {
+        "id": 30,
+        "source_ip": "",
+        "dest_ip": "",
+        "content": "l"
     }
 ]
 `
@@ -60,7 +206,7 @@ const demo_file = `
 const demo_file2 = `
 [
     {
-        "_id": 1,
+        "id": 1,
         "source_ip": "",
         "dest_ip": "",
         "content": "H"
@@ -160,7 +306,7 @@ function setDestNode(ip){
 
 
 function setup(){
-    let cnv = createCanvas(750, 750);
+    let cnv = createCanvas(500, 500);
     cnv.id('mycanvas');
 
     // styling
@@ -169,12 +315,13 @@ function setup(){
     packet info and timing section should be to right side
     */
 
+    
 
 
     n = new Network();
 
     //select number of routers and number of neighbors of each router
-    let numRouters = 228;
+    let numRouters = 25;
     for(let i = 0; i < numRouters; i ++){
         n.routers.push(new Router(""));
     }
@@ -183,10 +330,11 @@ function setup(){
 
     n.printNetwork();
 
-    button = createButton('Send Packets')
-    button.mouseClicked( ()=> {
+    sendPacketButton = createButton('Send Packets')
+    sendPacketButton.mouseClicked( ()=> {
         if(source_chosen && dest_chosen){
             packet_button_pressed = true;
+            sendPacketButton.hide();
         }else{
             alert("Please select a source and destination node by pressing on a black dot (router/node) with an IP address.")
         }
@@ -386,23 +534,51 @@ class Network{
         take http requests from file, create n packets
         give packets to start router 
         */
-       console.log("sending packets to start node...");
-       //console.log(http_requests);
-        for(let i = 0; i < http_requests.length; i++) {
-            let packet_info = http_requests[i];
-            let p = new Packet(packet_info);
-            //push packet to source node
-            for(let j = 0; j < this.routers.length; j++){
-                if(this.routers[j].ip == source_ip){
-                    // console.log("packet " + i + ": ");
-                    // console.log(p);
-                    this.routers[j].data.insert(p);
-                    this.routers[j].dijkstraPath = path;
-                    this.routers[j].dataMap = map;
-                    break;
-                }
+    //    console.log("sending packets to start node...");
+    //    //console.log(http_requests);
+    //     for(let i = 0; i < http_requests.length; i++) {
+    //         let packet_info = http_requests[i];
+    //         let p = new Packet(packet_info);
+    //         //push packet to source node
+    //         for(let j = 0; j < this.routers.length; j++){
+    //             if(this.routers[j].ip == source_ip){
+    //                 // console.log("packet " + i + ": ");
+    //                 // console.log(p);
+    //                 this.routers[j].data.insert(p);
+    //                 this.routers[j].dijkstraPath = path;
+    //                 this.routers[j].dataMap = map;
+    //                 break;
+    //             }
+    //         }
+    //     }
+
+        let pk_ind = 0;
+        function sender(start, path, map){
+            if(pk_ind < http_requests.length){
+                let packet_info = http_requests[pk_ind];
+                let p = new Packet(packet_info);
+                start.data.insert(p);
+                start.dijkstraPath = path;
+                start.dataMap = map;
+                pk_ind ++;
+                prog_p.innerHTML = `${(pk_ind/http_requests.length)*100}% (${pk_ind} of ${http_requests.length})`
+                //console.log('packet sent: ' + pk_ind);
+            }
+            
+        }
+
+        
+        let start_router;
+        for(let j = 0; j < this.routers.length; j++){
+            if(this.routers[j].ip == source_ip){
+                start_router = this.routers[j];
+                
             }
         }
+
+            setInterval(sender, 30, start_router,path, map);
+            clearInterval();
+            //sender(start_router, i, path, map);
     }
 }
 
@@ -471,7 +647,7 @@ class Router{
             //console.log(leaf);
             if(leaf !== null && leaf !== undefined && leaf.header.dest_ip !== this.ip){
 
-                this.data.remove(this.data.root, leaf.header._id);
+                this.data.remove(this.data.root, leaf.header.id);
                 this.data.count --;
                 //console.log(leaf);
                 this.sendPacket(leaf) // <-- this.data.append() gets last elememt <-- BST IMP
@@ -486,11 +662,11 @@ class Router{
         this.checkCompleteTransmission();
 
         //setting router to busy if applicable
-        // if(this.data.count > 3){
-        //     //this.busy = true;
-        // }else{
-        //     this.busy = false;
-        // }
+        if(this.data.count > 3){
+            //this.busy = true;
+        }else{
+            this.busy = false;
+        }
     }
 
     alreadyContains(router){
@@ -607,7 +783,7 @@ class Router{
             //console.log(this.data.count);
             //this.data.shift(); // remove data from node after arrival???/
         }else{  // <-- check if router has data to send
-            console.log(`forwarding packet from ${this.ip}...`);
+            //console.log(`forwarding packet from ${this.ip}...`);
             //console.log(packet);
             packet.prev_ip = this.ip;
             packet.lifespan = packet.lifespan - 1;
@@ -617,13 +793,26 @@ class Router{
 
 
     checkCompleteTransmission(){
+        // if (this.data.count > 0 && this.data.root.header.dest_ip == this.ip){
+        //     console.log('data present');
+        //     console.log(this.data.count % 10);
+        //     if(this.data.count % 10 === 0){
+        //         this.busy = false;
+        //         console.log("space available");
+        //     }else{
+        //         this.busy = true;
+        //         console.log('currently full');
+        //     }
+        // }
+    
+        
         //check if all data has been transmitted to node
         //console.log(this.count + "===" + http_requests.length);
        if(this.data.count === http_requests.length-1){
 
         const ct = this.data.count;
         const rt = this.data.root;
-        console.log(this);
+        //console.log(this);
         if(rt.header.dest_ip == this.ip){ // <-- one more check for correctness
  
             document.getElementById('search').style.visibility = "visible";
@@ -631,13 +820,17 @@ class Router{
             document.getElementById('bfs_button').addEventListener('click', (event) => {
                 let val = document.getElementById('packet_id').value;
                 if(val <= ct){
-                    let start_time = window.performance.now(); 
-                    let bfs_val = this.data.BFS(this.data.root, val);
-                    let end_time = window.performance.now(); 
-                    console.log(start_time);
-                    console.log(end_time);
+                    let tot_time = 0;
+                    let bfs_val;
+                    for(let i = 0; i < 6; i ++){
+                        let start_time = window.performance.now(); 
+                        bfs_val = this.data.BFS(this.data.root, val);
+                        let end_time = window.performance.now();
+                        tot_time += (end_time - start_time);
+                    }
+                    tot_time /= 5;
                     
-                    document.getElementById('bfs_label').innerHTML = `BFS: Time Elapsed: ${end_time - start_time}ms  |  Value Found: ${bfs_val}`;
+                    document.getElementById('bfs_label').innerHTML = `BFS: Time Elapsed: ${tot_time}ms  |  Value Found: ${bfs_val}`;
                 }else{
                     alert('Please enter a number within range!');
                 }
@@ -648,10 +841,17 @@ class Router{
                 let val = document.getElementById('packet_id').value;
                 //console.log(val);
                 if(val <= ct){
-                    let start_time = window.performance.now(); 
-                    let dfs_val = this.data.PreorderDFS(this.data.root, val);
-                    let end_time = window.performance.now();
-                    document.getElementById('bfs_label').innerHTML = `DFS: Time Elapsed: ${end_time - start_time}ms  |  Value Found: ${dfs_val}`;
+                    let tot_time = 0;
+                    let dfs_val;
+                    for(let i = 0; i < 6; i ++){
+                        let start_time = window.performance.now(); 
+                        dfs_val = this.data.PreorderDFS(this.data.root, val);
+                        let end_time = window.performance.now();
+                        tot_time += (end_time - start_time);
+                    }
+                    tot_time /= 5;
+                    
+                    document.getElementById('bfs_label').innerHTML = `DFS: Time Elapsed: ${tot_time}ms  |  Value Found: ${dfs_val}`;
                 }else{
                     alert('Please enter a number within range!');
                 }
@@ -680,7 +880,7 @@ class Packet{
     }
 
     parsePacket(json){
-        this.header._id = json._id;
+        this.header.id = json.id;
         this.header.source_ip = json.source_ip;
         this.header.dest_ip = json.dest_ip;
         this.body.content = json.content;
@@ -700,13 +900,13 @@ class BST {
         if (root == null)
             return false;
         
-        if(root.header._id == id){
-            console.log('duplicate found')
+        if(root.header.id == id){
+            //console.log('duplicate found')
             return true;
         }
             
         
-        if (root.header._id < id)
+        if (root.header.id < id)
             return this.checkDuplicates(root.right, id);
 
         return this.checkDuplicates(root.left, id);
@@ -715,31 +915,31 @@ class BST {
 
     insert(packet){
         //console.log('packet_count: ' + this.count)
-        if(!this.checkDuplicates(this.root, packet.header._id)){
+        //if(!this.checkDuplicates(this.root, packet.header.id)){
             //this.checkCompleteTransmission();
             if(this.root === null){
                this.root = packet;
                this.count ++;
-               console.log("inserted as root");
+               //console.log("inserted as root");
                //console.log(this.root);
             }else{
                this.insertNode(this.root, packet);
                this.count ++;
             };
-        }
+        //}
      };
 
      insertNode(node, packet){
-        if(packet.header._id < node.header._id){
+        if(packet.header.id < node.header.id){
            if(node.left === null){
-                console.log('inserted left');
+                //console.log('inserted left');
                 node.left = packet;
            }else{
                 this.insertNode(node.left, packet);
            }
         } else {
            if(node.right === null){
-                console.log('inserted right');
+                ///console.log('inserted right');
                 node.right = packet;
            }else{
                 this.insertNode(node.right,packet);
@@ -777,20 +977,20 @@ class BST {
 
     //need to remove prev->next, not next itself
     remove(node, id){
-        if (node == null || node.header._id == id){
-            //console.log('successfully removed: ' + node.header._id);
+        if (node == null || node.header.id == id){
+            //console.log('successfully removed: ' + node.header.id);
             this.root = null;
             node = null;
             return;
-        }else if(node.right !== null && node.right.header._id == id){
+        }else if(node.right !== null && node.right.header.id == id){
             node.right = null;
             return;
-        }else if(node.left !== null && node.left.header._id == id){
+        }else if(node.left !== null && node.left.header.id == id){
             node.right = null;
             return;
         }
         
-        if (node.header._id < id)
+        if (node.header.id < id)
             return this.remove(node.right, id);
 
         return this.remove(node.left, id);
@@ -805,11 +1005,11 @@ class BST {
             return "N/A";
         }
         else { // travers in preorder
-            console.log(root.header._id);
-            if (root.header._id == id) {
+            console.log(root.header.id);
+            if (root.header.id == id) {
                 return (root.body.content);
             }
-            else if (root.header._id > id) {
+            else if (root.header.id > id) {
                 return(this.PreorderDFS(root.left, id));
             }
             else {
@@ -817,8 +1017,6 @@ class BST {
             }
         }
     }
-
-
 
     BFS(root, s_id){
         if (root == null) {
@@ -829,7 +1027,7 @@ class BST {
       
         while (queue.length > 0) {
           let cur = queue.shift();
-          let id = cur.header._id;
+          let id = cur.header.id;
          console.log(id);
           if(id == s_id){
               return (cur.body.content);
@@ -846,7 +1044,4 @@ class BST {
           }
         }
       }
-
-    
-
 }
