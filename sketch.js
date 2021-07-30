@@ -561,7 +561,7 @@ class Network{
                 start.dijkstraPath = path;
                 start.dataMap = map;
                 pk_ind ++;
-                prog_p.innerHTML = `${(pk_ind/http_requests.length)*100}% (${pk_ind} of ${http_requests.length})`
+                
                 //console.log('packet sent: ' + pk_ind);
             }
             
@@ -576,7 +576,7 @@ class Network{
             }
         }
 
-            setInterval(sender, 30, start_router,path, map);
+            setInterval(sender, 50, start_router,path, map);
             clearInterval();
             //sender(start_router, i, path, map);
     }
@@ -804,7 +804,12 @@ class Router{
         //         console.log('currently full');
         //     }
         // }
-    
+
+        if (this.data.count > 0 && this.data.root.header.dest_ip == this.ip){
+            //console.log(this.data.count + " packet arrived at destination");
+            prog_p.innerHTML = `${(this.data.count/http_requests.length)*100}% (${this.data.count} of ${http_requests.length})`
+        }
+        
         
         //check if all data has been transmitted to node
         //console.log(this.count + "===" + http_requests.length);
