@@ -1,9 +1,38 @@
-.body{
-    display: flex;
-    flex-direction: row;
+body{
 }
 
-.search_types{
-    display: flex;
-    flex-direction: row;
+p{
+    font-size: 20px;
 }
+
+.all{
+    justify-content: center;
+    align-items: center;
+}
+  .first-half{
+    background-color: rgb(148, 148, 148);
+    border-right: 2px dashed black;
+  }
+  .second-half{
+    /* border: 2px solid black; */
+  }
+
+  .info_content{
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+  }
+
+  .net_content{
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .search_types{
+      display: inline;
+  }
+
+  .fileselector{
+      /* border: 2px dashed red; */
+  }

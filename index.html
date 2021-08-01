@@ -5,56 +5,72 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <!-- //<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.14/p5.js"></script> -->
     <link rel="stylesheet" href="style.css">
     <title>Network Visualizer</title>
 </head>
 <body>
-    <div class="fileselector" id="file_stuff">
-        <div id="file_selection_area" class="file_selection_area">
-            <p>Please selected a '.json' packet file.</p>
-            <input type="file" id="file-selector" accept=".json">
-            <p>or</p>
-            <button id="demo_button">Test with demo</button>
-        </div>
 
-        <p id="node_selection_text" style="visibility: hidden; color: green;">Please selected a source node (blue), then a destination node (red).</p>
-    </div>
+    <div class="d-md-flex h-md-100 align-items-center">
 
-    <div class="status">
-        <div class="upload_progress">
-            <p id="progress_p"></p>
-        </div>
-    </div>
-
-    <div class="search" id="search" style="visibility: hidden;">
-        <div class="bfs">
-            <input type="number" id="packet_id" placeholder="Please enter a number within range">
-            <div class="search_types">
-                <div class="bfs_group">
-                    <button id="bfs_button">BFS</button>
-                    <p id="bfs_label"></p>
-                </div>
-                <div class="dfs_group">
-                    <button id="dfs_button">DFS</button>
-                    <p id='dfs_label'></p>
+        <!-- First Half -->
+        <div class="first-half col-md-6 p-0 bg-indigo h-md-100">
+            <div class="text-black d-md-flex align-items-center h-100 p-5 text-center justify-content-center">
+                <div class="info_content pt-5 pb-5">
+                    <div class="info_content">
+                        <div class="fileselector" id="file_stuff">
+                            <div id="file_selection_area" class="file_selection_area">
+                                <p>Please selected a '.json' packet file.</p>
+                                <input type="file" id="file-selector" accept=".json">
+                                <p>or</p>
+                                <button id="demo_button">Test with demo</button>
+                            </div>
+                    
+                        </div>
+                    
+                        <div class="status">
+                            <p id="node_selection_text" style="visibility: hidden; color: rgb(35, 58, 35);">Please select a source node (<span style="color: blue;">blue</span>), then a destination node (<span style="color: red;">red</span>). Then, press "Send Packets" to send your message through the network.</p>
+                            <div class="upload-progress">
+                                <p id="progress_p"></p>
+                            </div>
+                        </div>
+                    
+                        <div class="search" id="search" style="visibility: hidden;">
+                            <div class="bfs">
+                                <input type="number" id="packet_id" placeholder="Please enter a number within range">
+                                <div class="search_types">
+                                    <div class="bfs_group">
+                                        <button id="bfs_button">Breadth First Search</button>
+                                        <p id="bfs_label"></p>
+                                    </div>
+                                    <div class="dfs_group">
+                                        <button id="dfs_button">Depth First Search</button>
+                                        <p id='dfs_label'></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                
                 </div>
             </div>
         </div>
+    
+        <!-- Second Half -->
+        <div class="second-half col-md-6 p-0 bg-white h-md-100">
+            <div class="d-md-flex align-items-center h-md-100 p-5 justify-content-center">
+                <div id="net_content" class="net_content pt-5 pb-5">
+                    <div class="mycanvas" id="mycanvas"></div>
+                </div>
+            </div>
+        </div>
+            
     </div>
 
-    <!-- <div class="nodeselector" id="node_selector">
-        <div class="origin_selector">
+    </div>
 
-        </div>
-        <div class="destination_selector">
-
-        </div>
-    </div> -->
-
-    <!-- <div class="packettext">
-        <h1>Packet Content ---------- Time (ms)</h1>
-        <p>Example 1 ---------- 14ms</p>
-    </div> -->
+      
 
     
     <script src="./sketch.js"></script>

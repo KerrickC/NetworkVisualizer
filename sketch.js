@@ -306,17 +306,8 @@ function setDestNode(ip){
 
 
 function setup(){
-    let cnv = createCanvas(500, 500);
-    cnv.id('mycanvas');
-
-    // styling
-    /*
-    canvas and send packet button should be together (vertically)
-    packet info and timing section should be to right side
-    */
-
-    
-
+    var cnv = createCanvas(650, 650);
+    cnv.parent('mycanvas');
 
     n = new Network();
 
@@ -330,16 +321,19 @@ function setup(){
 
     n.printNetwork();
 
-    sendPacketButton = createButton('Send Packets')
-    sendPacketButton.mouseClicked( ()=> {
+    var sendPacketButton = document.createElement('button');
+    sendPacketButton.innerHTML = "Send Packets";
+    sendPacketButton.addEventListener('click', (event) => {
         if(source_chosen && dest_chosen){
             packet_button_pressed = true;
-            sendPacketButton.hide();
+            sendPacketButton.style.visibility = "hidden";
         }else{
             alert("Please select a source and destination node by pressing on a black dot (router/node) with an IP address.")
         }
     })
+    document.getElementById("net_content").appendChild(sendPacketButton);
 }
+
 
 function draw(){
     background(255,255,255);
@@ -576,7 +570,7 @@ class Network{
             }
         }
 
-            setInterval(sender, 50, start_router,path, map);
+            setInterval(sender, 35, start_router,path, map);
             clearInterval();
             //sender(start_router, i, path, map);
     }
@@ -793,17 +787,6 @@ class Router{
 
 
     checkCompleteTransmission(){
-        // if (this.data.count > 0 && this.data.root.header.dest_ip == this.ip){
-        //     console.log('data present');
-        //     console.log(this.data.count % 10);
-        //     if(this.data.count % 10 === 0){
-        //         this.busy = false;
-        //         console.log("space available");
-        //     }else{
-        //         this.busy = true;
-        //         console.log('currently full');
-        //     }
-        // }
 
         if (this.data.count > 0 && this.data.root.header.dest_ip == this.ip){
             //console.log(this.data.count + " packet arrived at destination");
