@@ -790,7 +790,7 @@ class Router{
 
         if (this.data.count > 0 && this.data.root.header.dest_ip == this.ip){
             //console.log(this.data.count + " packet arrived at destination");
-            prog_p.innerHTML = `${(this.data.count/http_requests.length)*100}% (${this.data.count} of ${http_requests.length})`
+            prog_p.innerHTML = `${Math.floor((this.data.count/http_requests.length)*100)}% (${this.data.count} of ${http_requests.length})`
         }
         
         
@@ -818,7 +818,7 @@ class Router{
                     }
                     tot_time /= 5;
                     
-                    document.getElementById('bfs_label').innerHTML = `BFS: Time Elapsed: ${tot_time}ms  |  Value Found: ${bfs_val}`;
+                    document.getElementById('bfs_label').innerHTML = `BFS: Time Elapsed: ${tot_time.toFixed(2)}ms  |  Value Found: ${bfs_val}`;
                 }else{
                     alert('Please enter a number within range!');
                 }
@@ -839,7 +839,7 @@ class Router{
                     }
                     tot_time /= 5;
                     
-                    document.getElementById('bfs_label').innerHTML = `DFS: Time Elapsed: ${tot_time}ms  |  Value Found: ${dfs_val}`;
+                    document.getElementById('bfs_label').innerHTML = `DFS: Time Elapsed: ${tot_time.toFixed(2)}ms  |  Value Found: ${dfs_val}`;
                 }else{
                     alert('Please enter a number within range!');
                 }
